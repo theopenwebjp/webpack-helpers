@@ -58,7 +58,7 @@ const Rules = {
  const getWebpackMode = () => {
   const ALLOWED = ['production', 'development', 'none']
   const DEFAULT = 'development'
-  const env = process.env.NODE_ENV
+  const env = process.env.NODE_ENV || ''
   if (!ALLOWED.includes(env)) {
     console.warn(`Valid NODE_ENV value not found. NODE_ENV value is '${env}'. Will fall to default '${DEFAULT}'.`)
     return DEFAULT
@@ -142,10 +142,18 @@ class WebpackRecipes {
     }
   }
 
+  /**
+   * @param {('indexHTML'|'css'|'img'|'CHANGELOG')[]} patterns 
+   * @returns 
+   */
   static copyWebpackPluginPatterns(patterns = []) {
+    /**
+     * @typedef {{ toString: () => string }} Content
+     */
+
     const map = {
-      indexHTML: () => ({ from: 'index.html', transform: (content) => minify(content.toString()) }), // { from: 'index.html' },
-      css: () => ({ from: path.resolve(__dirname, 'css'), to: 'css', transform: (content) => csso.minify(content.toString()).css }),
+      indexHTML: () => ({ from: 'index.html', transform: /** @param {Content} content */ (content) => minify(content.toString()) }), // { from: 'index.html' },
+      css: () => ({ from: path.resolve(__dirname, 'css'), to: 'css', transform: /** @param {Content} content */ (content) => csso.minify(content.toString()).css }),
       img: () => ({ from: path.resolve(__dirname, 'img'), to: 'img' }),
       CHANGELOG: () => ({ from: path.resolve(__dirname, 'CHANGELOG.md') })
     }
@@ -208,13 +216,19 @@ class WebpackRecipes {
 const WebpackHelpers = {
   mode: () => {
     // https://webpack.js.org/configuration/mode/
+    /**
+     * @param {string} currentValue 
+     * @param {string} defaultValue 
+     * @returns 
+     */
     function setEnvironmentVariable(currentValue, defaultValue) {
       const aliases = {
         dev: 'development',
         prod: 'production'
       }
-      if (aliases[currentValue]) {
-        currentValue = aliases[currentValue]
+      const value = aliases[/** @type {keyof aliases} */ (currentValue)]
+      if (value) {
+        currentValue = value
       }
       if (!currentValue) {
         currentValue = defaultValue
@@ -223,7 +237,7 @@ const WebpackHelpers = {
     }
 
     console.log('Current process.env.NODE_ENV:', process.env.NODE_ENV) // TODO: Logs not going through. Is this NODE_ENV even going through consider NODE_ENV might just be local to that terminal.
-    const mode = setEnvironmentVariable(process.env.NODE_ENV, 'production') // TODO: Use constants.
+    const mode = setEnvironmentVariable(process.env.NODE_ENV || '', 'production')
     console.log('Set mode:', mode)
     return mode
   },

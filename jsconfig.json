@@ -1,0 +1,9 @@
+{
+  "include": ["index.js", "test.js"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true
+  }
+}

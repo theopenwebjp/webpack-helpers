@@ -2,7 +2,7 @@ const WebpackHelpers = require('./index')
 
 /**
  * @param {string} groupName 
- * @param {[[string, function]]} tests 
+ * @param {[string, function][]} tests 
  */
 async function g(groupName, tests) {
   console.log(`Group started: ${groupName}`)
@@ -51,7 +51,6 @@ async function test() {
     ['image', () => WebpackHelpers.Rules.image()],
     ['json', () => WebpackHelpers.Rules.json()],
   ])
-  
 }
 
 test()
