@@ -4,6 +4,10 @@ Collection of Webpack helper functions.
 
 ## Usage
 
+```bash
+npm install @theopenweb/webpack-helpers
+```
+
 Each function can be found in the source code.
 Only the main functions are found below:
 

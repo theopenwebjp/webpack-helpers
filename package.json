@@ -1,5 +1,5 @@
 {
-    "name": "webpack-helpers",
+    "name": "@theopenweb/webpack-helpers",
     "version": "1.1.0",
     "description": "Collection of webpack helpers for easily generating config.",
     "main": "index.js",
@@ -7,8 +7,19 @@
         "test": "node ./test.js"
     },
     "keywords": ["webpack", "helpers", "utilities", "config", "rules", "loaders"],
-    "author": "Damien Golding",
-    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/theopenwebjp/webpack-helpers.git"
+    },
+    "author": "The Open Web <noreply@theopenweb.jp> (https://theopenweb.jp)",
+    "contributors": [
+        "Damien Golding <noreply@damiengolding.com> (https://damiengolding.com)"
+    ],
+    "homepage": "https://theopenweb.info",
+    "bugs": {
+        "url": "https://github.com/theopenwebjp/webpack-helpers/issues"
+    },
+    "private": false,
     "dependencies": {
         "js-functions": "git+https://github.com/goldingdamien/js-functions.git"
     },
