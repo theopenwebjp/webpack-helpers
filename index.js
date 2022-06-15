@@ -2,6 +2,11 @@
 // Keep dependencies to a minimum. Add dependencies if required for the functions you use.
 const path = require('path')
 
+/**
+ * Support the latest stable webpack version by default.
+ * Add support for older versions and conversions via "Helpers".
+ */
+
 function webpack() {
   return require('webpack')
 }
@@ -48,9 +53,8 @@ const Rules = {
   htmlString: () => {
     return {
       test: /\.html$/,
-      loaders: [
-        'raw-loader'
-      ]
+      // loaders: ['raw-loader']
+      use: ['raw-loader']
     }
   },
   /**
@@ -60,7 +64,7 @@ const Rules = {
   cssString: () => {
     return {
       test: /\.css$/,
-      loaders: [
+      use: [ // loaders: [
         'to-string-loader',
         'css-loader'
       ]
@@ -70,19 +74,26 @@ const Rules = {
    * https://github.com/webpack-contrib/file-loader
    */
   image: () => {
+    const options = {
+      name: '[name].[ext]',
+      outputPath: 'components/assets/images/'
+      // the images will be emited to dist/.../components/assets/images/ folder
+    }
     return {
       test: /\.(jpe?g|png|gif|svg)$/i,
-      loader: 'file-loader',
-      options: {
-        name: '[name].[ext]',
-        outputPath: 'components/assets/images/'
-        // the images will be emited to dist/.../components/assets/images/ folder
-      }
+      // loader: 'file-loader',
+      // options
+      use: [
+        {
+          loader: 'file-loader',
+          options
+        }
+      ]
     }
   },
   common: () => {
     return [
-      Rules.json(),
+      // Rules.json(),
       Rules.htmlString(),
       Rules.cssString(),
       Rules.image(),
@@ -210,7 +221,8 @@ class WebpackRecipes {
     return {
       test: /\.(js)$/,
       exclude: /node_modules/,
-      loader: 'babel-loader'
+      // loader: 'babel-loader'
+      use: 'babel-loader'
     }
   }
 

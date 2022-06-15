@@ -1,6 +1,6 @@
 {
     "name": "@theopenweb/webpack-helpers",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "description": "Collection of webpack helpers for easily generating config.",
     "main": "index.js",
     "scripts": {
