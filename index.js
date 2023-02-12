@@ -36,6 +36,22 @@ function getDependencies() {
     csso: () => {
       const csso = require('csso')
       return csso
+    },
+    mustache: () => {
+      const Mustache = require('mustache')
+      return Mustache;
+    },
+    circularDependencyPlugin: () => {
+      const CircularDependencyPlugin = require('circular-dependency-plugin')
+      return CircularDependencyPlugin
+    },
+    terserPlugin: () => {
+      const TerserPlugin = require('terser-webpack-plugin')
+      return TerserPlugin
+    },
+    workboxWebpackPlugin: () => {
+      const WorkboxPlugin = require('workbox-webpack-plugin');
+      return WorkboxPlugin
     }
   }
 }
@@ -98,7 +114,53 @@ const Rules = {
       Rules.cssString(),
       Rules.image(),
     ]
+  },
+  styleLoader: () => {
+    /**
+     * @see https://www.npmjs.com/package/style-loader
+     */
+    const styleLoaderRecipes = {
+      styles: {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      },
+      nonLazyStyles: {
+        test: /\.css$/i,
+        exclude: /\.lazy\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+      lazyStyles: {
+        test: /\.lazy\.css$/i,
+        use: [
+          { loader: "style-loader", options: { injectType: "lazyStyleTag" } },
+          "css-loader",
+        ],
+      },
+      allAsLazyStyles: {
+        test: /\.css$/,
+        use: [
+          {
+            loader: 'style-loader', options: { injectType: 'lazyStyleTag' }
+          },
+          'css-loader'
+        ]
+      }
+    }
+    return styleLoaderRecipes
   }
+}
+
+const CONSOLE_METHOD_GROUPS = {
+  DEBUG: ['console.debug'], // Debug logs. Other logs SHOULD be shown / or handled in app.
+  TRIVIAL: ['console.trace', 'console.log', 'console.info', 'console.trace'], // All trivial. For example console.log might be outputted by other library, so can't simply not use.
+  NON_FATAL: ['console.trace', 'console.log', 'console.info', 'console.trace', 'console.warn'] // Not fatal.
+}
+
+const Constants = {
+  CONSOLE_METHOD_GROUPS
 }
 
 /**
@@ -170,6 +232,7 @@ class WebpackRecipes {
    * @param {{ mode?: 'development'|'production' }} [options]
    */
   static common(dirname, options = {}) {
+    // @ts-ignore
     const { CleanWebpackPlugin } = require('clean-webpack-plugin')
     const mode = options.mode || WebpackRecipes.getWebpackMode()
 
@@ -312,6 +375,95 @@ class WebpackRecipes {
       },
     }
   }
+  /**
+   * @param {string} html 
+   */
+  static htmlMinifier(html) {
+    return getDependencies().htmlMinifier()(html.toString())
+  }
+
+/**
+ * @typedef {Record<string, any>} MustacheData
+ */
+
+/**
+ * @see https://github.com/webpack-contrib/copy-webpack-plugin/blob/master/types/index.d.ts#L79
+ * @param {{ from: string, transform?: (content: string) => string }} options TODO: Once imported, reference proper type: ObjectPattern
+ * @param {MustacheData} data
+ */
+  static mustacheCopyWebpackPluginPattern(options, data) {
+    return {
+      from: options.from,
+      transform: (/** @type {{ toString: () => string; }} */ content) => {
+        const rendered = getDependencies().mustache().render(content.toString(), data)
+        return options.transform ? options.transform(rendered) : rendered
+      }
+    }
+  }
+
+  /**
+   * @param {RegExp} include /src/
+   */
+  static circularDependencyPlugin(include) {
+    return new (getDependencies().circularDependencyPlugin())({
+      // exclude detection of files based on a RegExp
+      exclude: /node_modules/,
+      // include specific files based on a RegExp
+      include,
+      // add errors to webpack instead of warnings
+      failOnError: true,
+      // allow import cycles that include an asyncronous import,
+      // e.g. via import(/* webpackMode: "weak" */ './file.js')
+      allowAsyncCycles: false,
+      // set the current working directory for displaying module paths
+      cwd: process.cwd(),
+    })
+  }
+
+  /**
+   * @see https://stackoverflow.com/a/60876651/1764521
+   * @see https://github.com/terser/terser
+   * @see https://zenn.dev/kalubi/articles/bc77cf71d1ffce Webpack 5
+   * 
+   * @param {string[]} [dropMethods] Custom method array or one of CONSOLE_METHOD_GROUPS.
+   */
+  static disableConsole(dropMethods = []) {
+    const compress = {}
+    if (dropMethods && dropMethods.length > 0) {
+      // https://github.com/webpack-contrib/terser-webpack-plugin/issues/57#issuecomment-498549997
+      // pure_funcs: ['console.info', 'console.debug', 'console.warn'] // Filter only these.
+      compress.pure_funcs = dropMethods
+    } else {
+      compress.drop_console = true
+    }
+
+    const TerserPlugin = getDependencies().terserPlugin()
+    const optimization = {
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress
+          }
+        })
+      ]
+    }
+    return optimization
+  }
+
+  static workbox() {
+    const WorkboxPlugin = getDependencies().workboxWebpackPlugin()
+    return new WorkboxPlugin.GenerateSW({
+      // these options encourage the ServiceWorkers to get in there fast
+      // and not allow any straggling "old" SWs to hang around
+      clientsClaim: true,
+      skipWaiting: true,
+      /**
+       * Currently have 4MB img file.
+       */
+      maximumFileSizeToCacheInBytes: 1024 * 1024 * 10,
+      //
+    })
+  }
 }
 
 /**
@@ -349,6 +501,7 @@ const WebpackHelpers = {
     console.log('Set mode:', mode)
     return mode
   },
+  constants: Constants,
   Recipes: WebpackRecipes,
   Helpers,
   Rules,
