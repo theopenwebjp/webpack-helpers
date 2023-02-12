@@ -34,7 +34,7 @@ async function test() {
   await g('Recipes', [
     ['common', () => WebpackHelpers.Recipes.common(__dirname)],
     ['babelLoader', () => WebpackHelpers.Recipes.babelLoader()],
-    ['copyWebpackPluginPatterns', () => WebpackHelpers.Recipes.copyWebpackPluginPatterns()],
+    ['copyWebpackPluginPatterns', () => WebpackHelpers.Recipes.copyWebpackPluginPatterns(['indexHTML', 'CHANGELOG', 'css', 'img'], 'dist')],
     ['cssLoaders', () => WebpackHelpers.Recipes.cssLoaders()],
     ['getCommonOutput', () => WebpackHelpers.Recipes.getCommonOutput(__dirname)],
     ['getWebpackMode', () => WebpackHelpers.Recipes.getWebpackMode()],
