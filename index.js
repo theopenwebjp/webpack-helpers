@@ -6,20 +6,20 @@ const path = require('path')
  * Support the latest stable webpack version by default.
  * Add support for older versions and conversions via "Helpers".
  */
-
 function webpack() {
   return require('webpack')
 }
 
-function minimize() {
-  // Minimizing
-  // const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // Archived. Use:
-  // https://github.com/webpack-contrib/terser-webpack-plugin
-  /*
-  Webpack v5 comes with the latest terser-webpack-plugin out of the box.
-  If you are using Webpack v5 or above and wish to customize the options, you will still need to install terser-webpack-plugin.
-  Using Webpack v4, you have to install terser-webpack-plugin v4.
+/**
+ * Minimizing
+ * // const UglifyJsPlugin = require('uglifyjs-webpack-plugin'); // Archived. Use:
+ * // https://github.com/webpack-contrib/terser-webpack-plugin
+ * 
+ * Webpack v5 comes with the latest terser-webpack-plugin out of the box.
+ * If you are using Webpack v5 or above and wish to customize the options, you will still need to install terser-webpack-plugin.
+ * Using Webpack v4, you have to install terser-webpack-plugin v4.
   */
+function minimize() {
   const TerserPlugin = require('terser-webpack-plugin'); // Included with webpack 4.
   return TerserPlugin
 }
@@ -60,11 +60,14 @@ function getDependencies() {
  * @see https://webpack.js.org/configuration/module/#rule
  */
 const Rules = {
+  /**
+   * @deprecated THIS IS NO LONGER REQUIRED. IN-BUILT IN NEWER VERSIONS OF WEBPACK.
+   */
   json: () => {
-    // THIS IS NO LONGER REQUIRED. IN-BUILT IN NEWER VERSIONS OF WEBPACK.
+    // SEE DEPRECATION NOTICE.
   },
   /**
-   * https://github.com/webpack-contrib/raw-loader
+   * @see https://github.com/webpack-contrib/raw-loader
    */
   htmlString: () => {
     return {
@@ -74,8 +77,8 @@ const Rules = {
     }
   },
   /**
-   * https://github.com/gajus/to-string-loader
-   * https://github.com/webpack-contrib/css-loader
+   * @see https://github.com/gajus/to-string-loader
+   * @see https://github.com/webpack-contrib/css-loader
    */
   cssString: () => {
     return {
@@ -87,13 +90,13 @@ const Rules = {
     }
   },
   /**
-   * https://github.com/webpack-contrib/file-loader
+   * @see https://github.com/webpack-contrib/file-loader
+   * The images will be emited to dist/.../components/assets/images/ folder
    */
   image: () => {
     const options = {
       name: '[name].[ext]',
       outputPath: 'components/assets/images/'
-      // the images will be emited to dist/.../components/assets/images/ folder
     }
     return {
       test: /\.(jpe?g|png|gif|svg)$/i,
@@ -154,9 +157,18 @@ const Rules = {
 }
 
 const CONSOLE_METHOD_GROUPS = {
-  DEBUG: ['console.debug'], // Debug logs. Other logs SHOULD be shown / or handled in app.
-  TRIVIAL: ['console.trace', 'console.log', 'console.info', 'console.trace'], // All trivial. For example console.log might be outputted by other library, so can't simply not use.
-  NON_FATAL: ['console.trace', 'console.log', 'console.info', 'console.trace', 'console.warn'] // Not fatal.
+  /**
+   * Debug logs. Other logs SHOULD be shown / or handled in app.
+   */
+  DEBUG: ['console.debug'],
+  /**
+   * All trivial. For example console.log might be outputted by other library, so can't simply not use.
+   */
+  TRIVIAL: ['console.trace', 'console.log', 'console.info', 'console.trace'],
+  /**
+   * Not fatal.
+   */
+  NON_FATAL: ['console.trace', 'console.log', 'console.info', 'console.trace', 'console.warn']
 }
 
 const Constants = {
@@ -182,15 +194,13 @@ const Constants = {
 /**
  * General helpers for things like conversions.
  * Use "WebpackRecipes" for getting presets, etc.
+ * 
+ * Migration info:
+ * v1 => v2/v3: https://webpack.js.org/migrate/3/
+ * v3 => v4: https://webpack.js.org/migrate/4/
+ * v4 => v5: https://github.com/webpack/changelog-v5/blob/master/MIGRATION%20GUIDE.md
  */
 class Helpers {
-  /*
-  Migration info:
-  v1 => v2/v3: https://webpack.js.org/migrate/3/
-  v3 => v4: https://webpack.js.org/migrate/4/
-  v4 => v5: https://github.com/webpack/changelog-v5/blob/master/MIGRATION%20GUIDE.md
-  */
-
   /**
    * @param {(import('webpack').RuleSetRule) | "..." | any} rule 
    */
@@ -212,13 +222,21 @@ class Helpers {
   }
 
   /**
-  * 
   * @param {import('webpack').Configuration} config 
   */
   static modernizeConfig(config) {
     if (config.module && config.module.rules) {
       config.module.rules.forEach(Helpers.modernizeWebpackRule)
     }
+  }
+
+  /**
+   * @see https://github.com/survivejs/webpack-merge
+   * @param {Parameters<import('webpack-merge').merge>} args
+   */
+  static merge(...args) {
+    const merge = require('webpack-merge').merge
+    return merge(...args)
   }
 }
 
@@ -406,16 +424,24 @@ class WebpackRecipes {
    */
   static circularDependencyPlugin(include) {
     return new (getDependencies().circularDependencyPlugin())({
-      // exclude detection of files based on a RegExp
+      /**
+       * exclude detection of files based on a RegExp
+       */
       exclude: /node_modules/,
-      // include specific files based on a RegExp
+      /**
+       * include specific files based on a RegExp
+       */
       include,
-      // add errors to webpack instead of warnings
+      /**
+       * add errors to webpack instead of warnings
+       */
       failOnError: true,
       // allow import cycles that include an asyncronous import,
       // e.g. via import(/* webpackMode: "weak" */ './file.js')
       allowAsyncCycles: false,
-      // set the current working directory for displaying module paths
+      /**
+       * set the current working directory for displaying module paths
+       */
       cwd: process.cwd(),
     })
   }
@@ -450,6 +476,10 @@ class WebpackRecipes {
     return optimization
   }
 
+  /**
+   * @see https://developer.chrome.com/docs/workbox/modules/workbox-webpack-plugin/
+   * @see https://developer.chrome.com/docs/workbox/modules/workbox-recipes/
+   */
   static workbox() {
     const WorkboxPlugin = getDependencies().workboxWebpackPlugin()
     return new WorkboxPlugin.GenerateSW({
@@ -458,11 +488,40 @@ class WebpackRecipes {
       clientsClaim: true,
       skipWaiting: true,
       /**
+       * @see https://developer.chrome.com/docs/workbox/reference/workbox-webpack-plugin/
+       * @see https://stackoverflow.com/a/53597107/1764521
+       */
+      runtimeCaching: [
+        {
+          urlPattern: ({ }) => { return true },
+          handler: 'NetworkFirst',
+          method: 'GET'
+        }
+      ],
+      /**
        * Currently have 4MB img file.
        */
       maximumFileSizeToCacheInBytes: 1024 * 1024 * 10,
       //
     })
+  }
+
+  /**
+   * @see https://stackoverflow.com/a/73627935/1764521
+   * @example Helpers.merge(config, Recipes.es6Module())
+   */
+  static es6Module() {
+    return {
+      experiments: {
+        outputModule: true,
+      },
+    
+      output: {
+        library: {
+          type: "module",
+        },
+      },
+    }
   }
 }
 
@@ -474,8 +533,10 @@ class WebpackRecipes {
  * @example module.exports = WebpackHelpers.Recipes.common(__dirname);
  */
 const WebpackHelpers = {
+  /**
+   * @see https://webpack.js.org/configuration/mode/
+   */
   mode: () => {
-    // https://webpack.js.org/configuration/mode/
     /**
      * @param {string} currentValue 
      * @param {string} defaultValue 
@@ -505,6 +566,10 @@ const WebpackHelpers = {
   Recipes: WebpackRecipes,
   Helpers,
   Rules,
+  /**
+   * @see https://webpack.js.org/concepts/plugins/
+   * @see https://webpack.js.org/plugins/
+   */
   Plugins: {
     jquery: () => {
       // Use the ProvidePlugin constructor to inject jquery implicit globals
@@ -515,9 +580,11 @@ const WebpackHelpers = {
         'window.$': 'jquery'
       })
     },
+    /**
+     * @see https://github.com/webpack-contrib/webpack-bundle-analyzer
+     */
     bundleAnalyzer: () => {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
-      // https://github.com/webpack-contrib/webpack-bundle-analyzer
       return new BundleAnalyzerPlugin({
         analyzerMode: 'static'
       })

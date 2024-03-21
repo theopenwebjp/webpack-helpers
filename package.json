@@ -1,6 +1,6 @@
 {
     "name": "@theopenweb/webpack-helpers",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "description": "Collection of webpack helpers for easily generating config.",
     "main": "index.js",
     "scripts": {
@@ -26,6 +26,7 @@
     "bugs": {
         "url": "https://github.com/theopenwebjp/webpack-helpers/issues"
     },
+    "license": "MIT",
     "private": false,
     "dependencies": {
         "circular-dependency-plugin": "^5.2.2",
@@ -38,6 +39,14 @@
         "webpack": "^5.68.0",
         "webpack-bundle-analyzer": "^4.5.0",
         "webpack-cli": "^4.9.2",
+        "webpack-merge": "^5.10.0",
         "workbox-webpack-plugin": "^6.5.4"
+    },
+    "devDependencies": {
+        "@types/circular-dependency-plugin": "^5.0.5",
+        "@types/csso": "^5.0.0",
+        "@types/html-minifier": "^4.0.2",
+        "@types/mustache": "^4.2.2",
+        "@types/webpack-bundle-analyzer": "^4.6.0"
     }
 }
